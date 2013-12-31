@@ -1,24 +1,21 @@
 import scala.util.parsing.combinator.RegexParsers
 
-class Timed(name:String,startTime:Double,runTime:Double,extra:String)
+class Timed
 
-case class Entry(name:String,startTime:Double,runTime:Double,extra:String) extends Timed(name,startTime,runTime,extra)
+case class Entry(name:String,startTime:Double,runTime:Double,extra:String) extends Timed
 
-case class ThreadEntry(name:String,startTime:Double,runTime:Double,extra:String) extends Timed(name,startTime,runTime,extra)
+case class ThreadEntry(name:String) extends Timed
 
 object BIParser extends RegexParsers  {
   def number: Parser[Double] = """\d+\.\d*""".r ^^ { _.toDouble }
   
-  def quote: Parser[String] = "\"".r
+  def text: Parser[String] =  ".*".r
   
-  //matches all characters except " for quoted strings
-  def text: Parser[String] =  "[^\"]*".r
-  
-  def quotedText: Parser[String] = quote ~> text <~ quote
+  def quotedText: Parser[String] = text
    
   def space: Parser[String] = " *".r
   
-  def name: Parser[String] = "[a-zA-Z0-9 ]+".r
+  def name: Parser[String] = "[a-zA-Z0-9#= _-]+".r
   
   def semi:Parser[String] = ";".r
 
@@ -34,9 +31,17 @@ object BIParser extends RegexParsers  {
   
   def threadStart: Parser[String] = literal("* Thread ")
   
-  def thread: Parser[ThreadEntry] = (threadStart ~> name <~ semi) ~ (startTime <~ semi) ~ (runTime <~ semi) ~ extraInfo ^^ {
-    case name ~ startTime ~ runTime ~ extraInfo =>  ThreadEntry(name,startTime,runTime,extraInfo)
+  def thread: Parser[ThreadEntry] = (threadStart ~> name)  ^^ {
+    case name  =>  ThreadEntry(name)
   }
   
   def line:Parser[Timed] = thread | entry
+  
+  def parse(in:String) = {
+    try {
+      parseAll(line,in).get
+    } catch {
+      case e:Exception => println("exceptioned on line: " + in); throw e
+    }
+  }
 }
