@@ -1,0 +1,21 @@
+Informally the grammar of a BI profiler output
+
+thread :=  "* Thread " <name of thread>;<start time>;<total time>;"<extra info>"
+
+line := <name of thing>;<start time>;<run time>;"<extra info>"
+
+name of thread := name
+name of thing := name
+name := [a-zA-Z]+
+
+start time := space number
+space := ' '
+number := d+.d+   (is a double)
+
+total time := space number
+
+extra info := quote text quote
+
+text := [a-zA-Z digit space]*
+quote := "
+
